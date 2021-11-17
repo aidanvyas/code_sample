@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <cs50.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+int main(int argc, char *argv[])
+{
+    // These are all the variables that I'll use
+    int count = 0;
+    FILE *input = fopen(argv[1], "r");
+    FILE *output = NULL;
+    unsigned char buffer[512];
+    // In spirit of full disclosure, I was stuck on this pset for a while, and the author SF on Medium gave me the idea for the "char filename[8]"
+    char filename[8];
+    bool is_open = false;
+
+    // Ensures that only 1 file name is entered
+    if (argc != 2)
+    {
+        printf("Usage: ./recover image\n");
+        return 1;
+    }
+
+    // Ensures that the file name actually is legit
+    if (input == NULL)
+    {
+        printf("Could not open file");
+        return 2;
+    }
+
+    // Similar to volume.c, as long as there are more things to read this will work
+    while (fread(buffer, sizeof(char), 512, input))
+    {
+        // These are the conditions for a jpeg
+        if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0)
+        {
+            // Checks if the file is open, and if it is it closes it
+            if (is_open == true)
+            {
+                fclose(output);
+            }
+            else
+            {
+                // checks for first file
+                if (count == 0)
+                {
+                    sprintf(filename, "000.jpg");
+                }
+                is_open = true;
+            }
+
+            sprintf(filename, "%03i.jpg", count);
+            output = fopen(filename, "w");
+            count++;
+        }
+
+        if (is_open == true)
+        {
+            fwrite(&buffer, 512, 1, output);
+        }
+    }
+
+    fclose(input);
+    fclose(output);
+    return 0;
+}

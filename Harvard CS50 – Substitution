@@ -1,0 +1,125 @@
+#import <stdio.h>
+#import <cs50.h>
+#import <string.h>
+#import <ctype.h>
+#import <math.h>
+
+bool valid_letters(string argv[]);
+bool repeats(string argv[]);
+
+int main(int argc, string argv[])
+{
+    // Check to make sure only 1 string is there
+    if (argc != 2)
+    {
+        printf("Usage: ./substitution key\n");
+        return 1;
+    }
+
+    // Check to make sure there are 26 characters in the string
+    if (strlen(argv[1]) != 26)
+    {
+        printf("Key must contain 26 characters.\n");
+        return 1;
+    }
+
+    // Check to make sure only valid letters
+    if (valid_letters(argv) == false)
+    {
+        printf("Key must not contain repeated characters.\n");
+        return 1;
+    }
+
+    // Check to make sure no letters are repeated
+    if (repeats(argv) == true)
+    {
+        printf("Key must not contain repeated characters.\n");
+        return 1;
+    }
+    
+    // Get string from user
+    string word = get_string("plaintext:  ");
+    
+    // Actually does the encoding
+    if (1 == 1) 
+    {
+        // Prints the encoded part
+        printf("ciphertext: ");
+        
+        // Goes through checks and encodes
+        for (int i = 0, n = strlen(word); i < n; i++)
+        {
+            // Makes sure casing is correct
+            if (isupper(word[i]))
+            {
+                printf("%c", toupper(argv[1][word[i] - 'A']));
+            }
+            // Same for lowercase
+            else if (islower(word[i]))
+            {
+                printf("%c", tolower(argv[1][word[i] - 'a']));
+            }
+            // Not changing for non-letters
+            else
+            {
+                printf("%c", word[i]);
+            }
+        }
+        // Printing a new line
+        printf("\n");
+        return 0;
+    }
+}
+
+bool valid_letters(string argv[])
+{
+    int count1 = 0;
+
+    for (int i = 0; i < 26; i++)
+    {
+        if ((argv[1][i] >= 'a' && argv[1][i] <= 'z') || (argv[1][i] >= 'A' && argv[1][i] <= 'Z'))
+        {
+            count1 = count1 + 0;
+        }
+        else
+        {
+            count1++;
+        }
+    }
+    
+    if (count1 > 0)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+
+}
+
+bool repeats(string argv[])
+{
+    int count2 = 0;
+
+    // Loop to make sure no letters are repated
+    for (int i = 0; i < 26; i++)
+    {
+        for (int j = 0; j < 26; j++)
+        {
+            if (argv[1][i] == argv[1][j])
+            {
+                count2++;
+            }
+        }
+    }
+    
+    if (count2 > 26)
+    {
+        return true;
+    }
+    else 
+    {
+        return false;
+    }
+}

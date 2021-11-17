@@ -1,0 +1,327 @@
+"""
+This was done on CodeSkulptor3 which was created by Scott Rixner.
+"""
+
+"""
+Stock market prediction using Markov chains.
+
+For each function, replace the return statement with your code.  Add
+whatever helper functions you deem necessary.
+"""
+
+import comp140_module3 as stocks
+from collections import defaultdict
+import random
+
+### Model
+
+def markov_chain(data, order):
+    """
+    Create a Markov chain with the given order from the given data.
+
+    inputs:
+        - data: a list of ints or floats representing previously collected data
+        - order: an integer repesenting the desired order of the markov chain
+
+    returns: a dictionary that represents the Markov chain
+    """
+        
+    # Creates the dictionary the main dictionary.
+    markov_dictionary = defaultdict(dict)
+
+    # Iterates through the data – stopping before you can't see any further.
+    for idx in range(len(data) - order):
+        
+        # This is the memory that we look back at.
+        memory_holder = tuple((data[idx : idx + order]))
+        
+        # This is the future predictions.
+        future_holder = data[idx + order]
+        
+        # If the future value is in the data set for the past values 
+        if future_holder in markov_dictionary[memory_holder]:
+            
+            # Add one to show that that occurance of a future value is more liekly.
+            markov_dictionary[memory_holder][future_holder] += 1
+            
+        # Else.
+        else:
+            
+            # Create a place in the tuple memory holder where the future value \
+            # will be and set it to 0.
+            markov_dictionary[memory_holder][future_holder] = 1
+    
+    # Creates a dictionary to store the percentages
+    percentage_dictionary = {}
+    
+    # Creates a counting variable
+    count = 0
+
+    # Iterates through the values in the main dictionary (in this case the future_holder tuples).
+    for percentage_dictionary in markov_dictionary.values():
+        
+        # Iterates through the values in the future_holder tuples.
+        for values in percentage_dictionary.values():
+            
+            # Adds all the values to count
+            count += values
+   
+        # Iterates through the keys in the future_holder tuples.
+        for keys in percentage_dictionary.keys():
+            
+            # Divides the amount of future values of that occurance by the total count
+            percentage_dictionary[keys] /= count
+            
+        # Sets count to 0 so it doesn't affect future iterations
+        count = 0
+
+    # Returns the final dictionary
+    return markov_dictionary
+
+
+### Weighted Choice (change name later)
+def weighted_choice(inner_dictionary):
+    """
+    Computes a random value and assigns it to a future state based on the known probabilites.
+    
+    inputs:
+        - markov_dictionary: a dictionary that was created in the markov_chain function
+     
+    returns: what the future state will be
+    """
+            
+    # Creates a random varible from 0 to 0.99999
+    markov_random = random.random()
+    
+    # Creates a tracker value which will help us make this random
+    tracker = 0
+    
+    # Sets this key that we will use later to 0.  Added this because of style.
+    key = 0
+    
+    # Loops through the inner dictionary which is like {1: 0.66, 2: 0.34}
+    for key in inner_dictionary:
+        
+        # If the random variable is less than the dictionary value then we return that value
+        if markov_random < tracker + float(inner_dictionary[key]):
+            
+            # Returns the value of the inner dictionary
+            return key
+        
+        # Else
+        else:
+            
+            # Adds the inner dictionary 
+            tracker += inner_dictionary[key]
+    
+    # Returns the value of the inner dictionary.  Added this because of style. 
+    return key
+            
+### Predict
+
+def predict(model, last, num):
+    """
+    Predict the next num values given the model and the last values.
+
+    inputs:
+        - model: a dictionary representing a Markov chain
+        - last: a list (with length of the order of the Markov chain)
+                representing the previous states
+        - num: an integer representing the number of desired future states
+
+    returns: a list of integers that are the next num states
+    """
+    
+    # Creates a copy of last.
+    memory_holder = last.copy()
+    
+    # Creates a list that will store all the predictions
+    all_predictions = []
+    
+    # Create a value to store just the next predictions
+    next_prediction = 0
+    
+    # Creates a dictionary where everything has an equal probability
+    equal_dictionary = {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
+    
+    # If the model is empty or the memory is not in the model, then it returns an equal 
+    # probability of all the outcomes
+    if model == {} or tuple(memory_holder) not in model:
+        
+        # Iterates through all the times you need to make a prediction 
+        for idx in range(num):
+            
+            # The next prediction is just an equal probability
+            next_prediction = weighted_choice(equal_dictionary)
+            
+            # Adds the next prediction 
+            all_predictions.append(next_prediction)
+    
+    # Else
+    else:
+
+        # Iterates through all the times you need to make a prediction 
+        for idx in range(num):
+
+            # Sets the next prediction using the weighted_choice function
+            next_prediction = weighted_choice(model[tuple(memory_holder)])
+
+            # This makes sure we are at least on the second value to make changes
+            if idx > 0:
+
+                # Deletes the first item from memory_holder
+                memory_holder.pop(0)
+
+                # Adds the next prediction to the end of the memory
+                memory_holder.append(next_prediction)
+
+                # Sets the next prediction using the weighted_choice function
+                next_prediction = weighted_choice(model[tuple(memory_holder)])
+
+            # Adds the next prediction 
+            all_predictions.append(next_prediction)
+
+    # Returns all the predictions
+    return all_predictions
+
+
+### Error
+
+def mse(result, expected):
+    """
+    Calculate the mean squared error between two data sets.
+
+    The length of the inputs, result and expected, must be the same.
+
+    inputs:
+        - result: a list of integers or floats representing the actual output
+        - expected: a list of integers or floats representing the predicted output
+
+    returns: a float that is the mean squared error between the two data sets
+    """
+    
+    # Creates a variable that will serve as a sum
+    sum_of = 0.0
+    
+    # Creates a variable that will serve as what will be returned
+    mean_squared_error = 0.0
+    
+    # Iterates through the number of values
+    for idx in range(len(result)):
+        
+        # Adds the squared erros to the sums
+        sum_of = sum_of + ((result[idx] - expected[idx]) ** 2)
+        
+    # Divides the sum by the number of values
+    mean_squared_error = sum_of / len(result)
+        
+    # Returns the mean squared error
+    return mean_squared_error
+
+
+### Experiment
+
+def run_experiment(train, order, test, future, actual, trials):
+    """
+    Run an experiment to predict the future of the test
+    data given the training data.
+
+    inputs:
+        - train: a list of integers representing past stock price data
+        - order: an integer representing the order of the markov chain
+                 that will be used
+        - test: a list of integers of length "order" representing past
+                stock price data (different time period than "train")
+        - future: an integer representing the number of future days to
+                  predict
+        - actual: a list representing the actual results for the next
+                  "future" days
+        - trials: an integer representing the number of trials to run
+
+    returns: a float that is the mean squared error over the number of trials
+    """
+    
+    # Creates a variable that stores the sum
+    sum_is = 0
+    
+    # Creates a variable that stores the answer
+    answer = 0
+    
+    # Iterates the number of trials
+    for jdx in range(trials):
+                    
+        # Basically just assigns the output for markov_chain to input_for_predict
+        input_for_predict = markov_chain(train, order)
+
+        # Assigns the output for predict to predict_output
+        predict_output = predict(input_for_predict, test, future)
+
+        # Sums all the mean sqaured errors
+        sum_is += mse(predict_output, actual)
+
+        # Something random to fix a style error for not using jdx
+        jdx += 1
+    
+    # Divides the sum by the number of trials
+    answer = sum_is / trials
+
+    # Returns the answer
+    return answer
+
+### Application
+
+def run():
+    """
+    Run application.
+
+    You do not need to modify any code in this function.  You should
+    feel free to look it over and understand it, though.
+    """
+    # Get the supported stock symbols
+    symbols = stocks.get_supported_symbols()
+
+    # Get stock data and process it
+
+    # Training data
+    changes = {}
+    bins = {}
+    for symbol in symbols:
+        prices = stocks.get_historical_prices(symbol)
+        changes[symbol] = stocks.compute_daily_change(prices)
+        bins[symbol] = stocks.bin_daily_changes(changes[symbol])
+
+    # Test data
+    testchanges = {}
+    testbins = {}
+    for symbol in symbols:
+        testprices = stocks.get_test_prices(symbol)
+        testchanges[symbol] = stocks.compute_daily_change(testprices)
+        testbins[symbol] = stocks.bin_daily_changes(testchanges[symbol])
+
+    # Display data
+    #   Comment these 2 lines out if you don't want to see the plots
+    stocks.plot_daily_change(changes)
+    stocks.plot_bin_histogram(bins)
+
+    # Run experiments
+    orders = [1, 3, 5, 7, 9]
+    ntrials = 500
+    days = 5
+
+    for symbol in symbols:
+        print(symbol)
+        print("====")
+        print("Actual:", testbins[symbol][-days:])
+        for order in orders:
+            error = run_experiment(bins[symbol], order,
+                                   testbins[symbol][-order-days:-days], days,
+                                   testbins[symbol][-days:], ntrials)
+            print("Order", order, ":", error)
+        print()
+
+# You might want to comment out the call to run while you are
+# developing your code.  Uncomment it when you are ready to run your
+# code on the provided data.
+
+# run()
+

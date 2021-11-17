@@ -1,0 +1,66 @@
+#import <stdio.h>
+#import <cs50.h>
+
+int main(void)
+{
+    // Gets credit card # from the user
+    long n = get_long("Number: ");
+    
+    // Sets out counter to 0
+    int count = 0;
+    
+    // I created a new variable to manipulate n so I can carry out Luhn's algo
+    long manipulate = n;
+    manipulate = manipulate / 10;
+    for (int i = 0; i < 20; i++)
+    {
+        if ((manipulate % 10) > 4)
+        {
+            count = count + (manipulate % 10) * 2 / 10;
+            count = count + (manipulate % 10) * 2 % 10;
+        }
+        else
+        {
+            count = count + (manipulate % 10) * 2;
+        }
+        manipulate = manipulate / 100;
+    }
+    
+    // Next step is find the numbers that were skipped and add them to count
+    long m = n;
+    for (int j = 0; j < 20; j++)
+    {
+        count = count + (m % 10);
+        m = m / 100;
+    }
+    
+    if (count % 10 == 0)
+    {
+        // AMEX starts with 34 or 37 and are all 15 digits
+        if ((n > 339999999999999 && n < 350000000000000) || (n > 369999999999999 && n < 380000000000000))
+        {
+            printf("AMEX\n");
+        }
+        
+        // MASTERCARD starts with 51 to 55 and is 16 digits
+        else if (n > 5099999999999999 && n < 5600000000000000)
+        {
+            printf("MASTERCARD\n");
+        }
+        
+        // VISA starts with 4 and is 13 or 16 digits
+        else if ((n > 3999999999999 && n < 5000000000000) || (n > 3999999999999999 && n < 5000000000000000))
+        {
+            printf("VISA\n");
+        }
+        
+        else
+        {
+            printf("INVALID\n");
+        }
+    }
+    else
+    {
+        printf("INVALID\n");
+    }
+}

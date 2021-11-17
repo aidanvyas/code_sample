@@ -1,0 +1,46 @@
+#import <stdio.h>
+#import <cs50.h>
+
+int main(void)
+{
+    // Getting the height
+    int number;
+    do
+    {
+        number = get_int("Height: ");
+    }
+    while (number < 1 || number > 8);
+    
+    // Printing the structure
+    // This line is a loop for the height
+    for (int height = 1; height < number + 1; height++)
+    {
+        // Loop for width
+        for (int width = 0; width < number * 2 + 2; width++)
+        {
+            // Does stuff depentdent on where it is on the width with respect to height and number
+            if (width < number - height)
+            {
+                printf(" ");
+            }
+            else if (width < number)
+            {
+                printf("#");
+            }
+            else if (width < number + 2)
+            {
+                printf(" ");
+            }
+            else if (width < number + 2 + height)
+            {
+                printf("#");
+            }
+            else
+            {
+                printf("");
+            }
+        }
+        printf("\n");
+    }
+
+}
